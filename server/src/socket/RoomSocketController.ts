@@ -2,7 +2,8 @@ import { Server, Socket } from "socket.io";
 import { clientRoomManager } from "../../app";
 import { JoinRoomPayload, RoomStatePayload } from "../../../shared/roomSocketTypes"
 import GameRoom from "../models/GameRoom";
-import Client from "../models/Client";
+import ClientGlobalState from "../models/ClientGlobalState";
+import { ClientRequest } from "../../../shared/clientRequestTypes";
 
 export default class RoomSocketController {
     io: Server;
@@ -36,16 +37,16 @@ export default class RoomSocketController {
             })
 
             socket.on("join_room", (data) => {
-                const payload: JoinRoomPayload = JSON.parse(data);
-                let room = clientRoomManager.joinRoom(client, payload.roomId);
+                const request: ClientRequest<JoinRoomPayload> = JSON.parse(data);
+                let room = clientRoomManager.joinRoom(client, request.payload.roomId);
 
                 if (room == null) {
-                    console.log("client " + client.id + " " + "couldnt join room " + payload.roomId)
+                    console.log("client " + client.id + " " + "couldnt join room " + request.payload.roomId)
                     return;
                 }
 
                 this.handleRoomJoinedSocket(socket, room);
-                console.log("client " + client.id + " " + "joined room " + payload.roomId)
+                console.log("client " + client.id + " " + "joined room " + request.payload.roomId)
             })
 
             socket.on("create_room", () => {

@@ -1,13 +1,13 @@
-import Client from "./models/Client";
+import ClientGlobalState from "./models/ClientGlobalState";
 import GameRoom from "./models/GameRoom";
 
 export default class ClientRoomManager {
 
-    private clients: Map<string, Client>;
+    private clients: Map<string, ClientGlobalState>;
     private rooms: Map<string, GameRoom>;
 
     constructor() {
-        this.clients = new Map<string, Client>();
+        this.clients = new Map<string, ClientGlobalState>();
         this.rooms = new Map<string, GameRoom>();
     }
 
@@ -31,31 +31,32 @@ export default class ClientRoomManager {
         return uniqueIdTest;
     }
 
-    public registerClient(id: string): Client {
+    public registerClient(id: string): ClientGlobalState {
         if (this.clients.has(id)) {
             return this.clients.get(id);
         }
-        let client = new Client(id);
+        let client = new ClientGlobalState(id);
         this.clients.set(id, client);
         return this.clients.get(id);
     }
 
-    public createRoom(creator: Client): GameRoom {
+    public createRoom(creator: ClientGlobalState): GameRoom {
         if (creator.inRoom) {
             return undefined;
         }
         let roomId = this.generateUniqueRoomId();
-        let gameRoom = new GameRoom(roomId);
-        let addCheck = gameRoom.addClient(creator);
+        let room = new GameRoom(roomId);
+        let addCheck = room.addClient(creator);
+        creator.setInRoomState(room);
         if (!addCheck) {
             console.error("Error on room creation: could not add creator!");
             return undefined;
         }
-        this.rooms.set(gameRoom.id, gameRoom);
-        return gameRoom;
+        this.rooms.set(room.id, room);
+        return room;
     }
 
-    public leaveRoom(client: Client): GameRoom {
+    public leaveRoom(client: ClientGlobalState): GameRoom {
         if (!client.inRoom) {
             return null;
         }
@@ -64,21 +65,23 @@ export default class ClientRoomManager {
             return null;
         }
         if (room.removeClient(client)) {
+            client.setInHomeState();
             return room;
         }
         return null;
     }
 
-    public joinRoom(client: Client, roomId: string): GameRoom {
+    public joinRoom(client: ClientGlobalState, roomId: string): GameRoom {
         if (!this.rooms.has(roomId) || client.inRoom) {
             return null;
         }
         let room = this.rooms.get(roomId);
         room.addClient(client);
+        client.setInRoomState(room);
         return room;
     }
 
-    public getClient(id: string): Client {
+    public getClient(id: string): ClientGlobalState {
         return this.clients.get(id);
     }
 }
