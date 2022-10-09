@@ -40,19 +40,19 @@ export default class ClientRoomManager {
         return this.clients.get(id);
     }
 
-    public createRoom(creator: ClientGlobalState): GameRoom {
+    public createRoom(creator: ClientGlobalState, chosenNickname: string): GameRoom {
         if (creator.inRoom) {
             return undefined;
         }
         let roomId = this.generateUniqueRoomId();
         let room = new GameRoom(roomId);
-        let addCheck = room.addClient(creator);
+        let clientRoomState = room.addClient(creator.playerId, chosenNickname);
         creator.setInRoomState(room);
-        if (!addCheck) {
+        if (clientRoomState == null) {
             console.error("Error on room creation: could not add creator!");
             return undefined;
         }
-        this.rooms.set(room.id, room);
+        this.rooms.set(room.getRoomId(), room);
         return room;
     }
 
@@ -64,19 +64,19 @@ export default class ClientRoomManager {
         if (typeof room == "undefined") {
             return null;
         }
-        if (room.removeClient(client)) {
+        if (room.removeClient(client.playerId)) {
             client.setInHomeState();
             return room;
         }
         return null;
     }
 
-    public joinRoom(client: ClientGlobalState, roomId: string): GameRoom {
+    public joinRoom(client: ClientGlobalState, roomId: string, chosenNickname: string): GameRoom {
         if (!this.rooms.has(roomId) || client.inRoom) {
             return null;
         }
         let room = this.rooms.get(roomId);
-        room.addClient(client);
+        room.addClient(client.playerId, chosenNickname);
         client.setInRoomState(room);
         return room;
     }
