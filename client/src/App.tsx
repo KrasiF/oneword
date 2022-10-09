@@ -1,23 +1,25 @@
 import React, { useRef, useState } from 'react';
 import logo from './logo.svg';
-import {io} from 'socket.io-client';
-import { JoinRoomPayload, RoomStatePayload } from "../../shared/roomSocketTypes"
-import { randomUUID } from 'crypto';
+import {io, Socket} from 'socket.io-client';
+import { CreateRoomPayload, JoinRoomPayload, RoomStatePayload } from "../../shared/roomSocketTypes"
+import { v4 as uuidv4 } from 'uuid';
+import { getSocket,setSocket} from "./service/socket";
+import ClientRoomState from '../../shared/ClientRoomState';
 
 
 
 function App() {
-
   let playerId = sessionStorage.getItem("playerId");
   if(playerId === null){
-    playerId = randomUUID();
+    playerId = uuidv4();
     sessionStorage.setItem("playerId",playerId);
   }
-  const socket = io("http://localhost:3001",{query:{"playerId":playerId}})
+  let socketQuery = getSocket();
+  let socket: Socket = socketQuery !== null? socketQuery: setSocket(playerId);
 
   const roomIdInputRef = useRef<any>("");
   const nicknameInputRef = useRef<any>("");
-  const [clients,setClients] = useState<Array<string>>([]);
+  const [clients,setClients] = useState<Array<ClientRoomState>>([]);
   socket.on("joined_room",(data)=>{
     onRoomJoined(JSON.parse(data));
   });
@@ -47,7 +49,7 @@ function App() {
       <button onClick={()=>{joinRoom()}}>Join Room</button>
       <button onClick={()=>{leaveRoom()}}>Leave Room</button>
       {
-        clients.map((c)=><p>{c}</p>)
+        clients.map((c)=><p>{c.nickname}</p>)
       }
     </div>
   );
@@ -73,8 +75,8 @@ function App() {
     if(nickname == null || nickname.length == 0){
       return;
     }
-    const payload = {nickname: nickname}
-    socket.emit("create_room",payload);
+    const payload: CreateRoomPayload = {nickname: nickname}
+    socket.emit("create_room",JSON.stringify(payload));
   }
 
   function joinRoom(){
