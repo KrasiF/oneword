@@ -2,29 +2,48 @@ import React, { useRef, useState } from 'react';
 import logo from './logo.svg';
 import {io} from 'socket.io-client';
 import { JoinRoomPayload, RoomStatePayload } from "../../shared/roomSocketTypes"
-const socket = io("http://localhost:3001")
+import { randomUUID } from 'crypto';
+
 
 
 function App() {
 
-  const inputRef = useRef<any>("");
+  let playerId = sessionStorage.getItem("playerId");
+  if(playerId === null){
+    playerId = randomUUID();
+    sessionStorage.setItem("playerId",playerId);
+  }
+  const socket = io("http://localhost:3001",{query:{"playerId":playerId}})
+
+  const roomIdInputRef = useRef<any>("");
+  const nicknameInputRef = useRef<any>("");
   const [clients,setClients] = useState<Array<string>>([]);
   socket.on("joined_room",(data)=>{
     onRoomJoined(JSON.parse(data));
-  })
+  });
 
   socket.on("state_update_room",(data)=>{
     onRoomUpdated(JSON.parse(data));
-  })
+  });
 
   socket.on("left_room", ()=>{
     setClients([]);
-  })
+  });
+
+  // socket.on("receive_playerId",(id)=>{
+  //   console.log("received playerId");
+  //   if(sessionStorage.getItem("playerId")==null){
+  //     sessionStorage.setItem("playerId",id);
+  //     console.log("playerId set");
+  //   }
+  // });
 
   return (
     <div className="App">
+      <label>Nickname:</label>
+      <input type="text" ref={nicknameInputRef}></input>
       <button onClick={()=>{createRoom()}}>Create Room</button>
-      <input type="text" ref={inputRef}></input>
+      <input type="text" ref={roomIdInputRef}></input>
       <button onClick={()=>{joinRoom()}}>Join Room</button>
       <button onClick={()=>{leaveRoom()}}>Leave Room</button>
       {
@@ -33,29 +52,40 @@ function App() {
     </div>
   );
 
+  function getNickname() : string {
+    let inputVal = nicknameInputRef.current.value;
+    return inputVal;
+  }
+
   function onRoomUpdated(payload: RoomStatePayload){
-    payload.clientIds.forEach((c)=>console.log(c));
-    setClients(payload.clientIds);
+    payload.clients.forEach((c)=>console.log(c));
+    setClients(payload.clients);
   }
 
   function onRoomJoined(payload: RoomStatePayload){
-    payload.clientIds.forEach((c)=>console.log(c));
-    setClients(payload.clientIds);
-    inputRef.current.value = payload.roomId;
+    payload.clients.forEach((c)=>console.log(c));
+    setClients(payload.clients);
+    roomIdInputRef.current.value = payload.roomId;
   }
 
   function createRoom() {
-    socket.emit("create_room");
+    let nickname = getNickname();
+    if(nickname == null || nickname.length == 0){
+      return;
+    }
+    const payload = {nickname: nickname}
+    socket.emit("create_room",payload);
   }
 
   function joinRoom(){
+    let nickname = getNickname();
+    let inputVal = roomIdInputRef.current.value;
 
-    let inputVal = inputRef.current.value;
-
-    if(inputVal!=null){
-      const joinRoomPayload: JoinRoomPayload = {roomId: inputVal};
-      socket.emit("join_room",JSON.stringify(joinRoomPayload));      
-    }    
+    if(nickname == null || nickname.length == 0 || inputVal == null){
+      return;
+    }
+    const joinRoomPayload: JoinRoomPayload = {roomId: inputVal, nickname: nickname};
+    socket.emit("join_room",JSON.stringify(joinRoomPayload));
   }
 
   function leaveRoom(){

@@ -4,19 +4,18 @@ import GameRoom from "./GameRoom";
 export default class ClientGlobalState {
 
     constructor(id: string) {
-        this.id = id;
+        this.playerId = id;
         this.state = ClientStatesEnum.UNNAMED;
     }
 
     state: ClientStatesEnum;
-    id: string;
+    playerId: string;
     inRoom: boolean = false;
     roomId: string = undefined;
-    nickname: string = undefined;
 
     public setInRoomState(room: GameRoom) {
         this.inRoom = true;
-        this.roomId = room.id;
+        this.roomId = room.getRoomId();
         this.state = ClientStatesEnum.IN_ROOM;
     }
 
@@ -24,10 +23,6 @@ export default class ClientGlobalState {
         this.inRoom = false;
         this.roomId = undefined;
         this.state = ClientStatesEnum.IN_HOME;
-    }
-
-    public setNickname(nickname: string) {
-        this.nickname = nickname;
     }
 
     public setInGameState() {
