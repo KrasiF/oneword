@@ -1,14 +1,13 @@
 import { Server } from "socket.io";
-import RoomSocketController from "./RoomSocketController";
+import RoomManagerSocketController from "./RoomManagerSocketController";
 
 export default class SocketRouter {
     io: Server;
 
-    roomSocketController: RoomSocketController;
+    roomSocketController: RoomManagerSocketController;
 
     constructor(io: Server) {
         this.io = io;
-        this.roomSocketController = new RoomSocketController(this.io);
-
+        this.roomSocketController = new RoomManagerSocketController(this.io);
     }
 }

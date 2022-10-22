@@ -3,7 +3,7 @@ const app = express();
 import http from 'http';
 const server = http.createServer(app);
 import { Server } from "socket.io";
-import ClientRoomManager from './src/ClientRoomManager';
+import ClientToRoomController from './src/controllers/ClientToRoomController';
 import SocketRouter from './src/socket/SocketRouter';
 
 const io = new Server(server, {
@@ -13,7 +13,7 @@ const io = new Server(server, {
     },
 });
 
-export const clientRoomManager = new ClientRoomManager();
+export const clientRoomManager = new ClientToRoomController();
 export const socketRouter = new SocketRouter(io);
 
 server.listen(3001, () => {

@@ -1,10 +1,10 @@
 import { Server, Socket } from "socket.io";
 import { clientRoomManager } from "../../app";
 import { CreateRoomPayload, JoinRoomPayload, RoomStatePayload } from "../../../shared/roomSocketTypes"
-import GameRoom from "../models/GameRoom";
+import GameRoomController from "../controllers/GameRoomController";
 import ClientGlobalState from "../models/ClientGlobalState";
 
-export default class RoomSocketController {
+export default class RoomManagerSocketController {
     io: Server;
 
     constructor(io: Server) {
@@ -12,15 +12,16 @@ export default class RoomSocketController {
         this.setupConnectionEndpoints();
     }
 
-    handleRoomJoinedSocket(socket: Socket, room: GameRoom) {
+    handleRoomJoinedSocket(socket: Socket, room: GameRoomController) {
         let payload: RoomStatePayload = room.getRoomStatePayload();
         socket.join(payload.roomId);
         socket.emit("joined_room", JSON.stringify(payload));
         socket.to(payload.roomId).emit("state_update_room", JSON.stringify(payload));
     }
 
-    handleRoomLeftSocket(socket: Socket, room: GameRoom) {
+    handleRoomLeftSocket(socket: Socket, room: GameRoomController) {
         let payload: RoomStatePayload = room.getRoomStatePayload();
+        console.log(payload.roomId + " left")
         socket.leave(payload.roomId);
         socket.emit("left_room");
         socket.to(payload.roomId).emit("state_update_room", JSON.stringify(payload));
@@ -30,7 +31,7 @@ export default class RoomSocketController {
         this.io.on('connection', (socket) => {
             let playerId: string = socket.handshake.query.playerId as string;
             let client = clientRoomManager.registerClient(playerId);
-            console.log('a user connected: ' + client);
+            console.log('a user connected: ' + JSON.stringify(playerId) + " " + socket.id);
 
             socket.on("ping", () => {
                 console.log("pinged")
@@ -51,7 +52,7 @@ export default class RoomSocketController {
 
             socket.on("create_room", (data) => {
                 const payload: CreateRoomPayload = JSON.parse(data);
-                let room = clientRoomManager.createRoom(client, payload.nickname);
+                let room = clientRoomManager.initializeRoom(client, payload.nickname);
 
                 if (room === null) {
                     console.log("new room wasn't created.");
@@ -74,6 +75,9 @@ export default class RoomSocketController {
                 console.log(client.playerId + " left room")
             })
 
+            socket.on("disconnect", () => {
+                console.log(socket.id + " disconnected.")
+            });
 
         });
     }

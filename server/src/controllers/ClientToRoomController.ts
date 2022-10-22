@@ -1,14 +1,14 @@
-import ClientGlobalState from "./models/ClientGlobalState";
-import GameRoom from "./models/GameRoom";
+import ClientGlobalState from "../models/ClientGlobalState";
+import GameRoomController from "./GameRoomController";
 
-export default class ClientRoomManager {
+export default class ClientToRoomController {
 
     private clients: Map<string, ClientGlobalState>;
-    private rooms: Map<string, GameRoom>;
+    private rooms: Map<string, GameRoomController>;
 
     constructor() {
         this.clients = new Map<string, ClientGlobalState>();
-        this.rooms = new Map<string, GameRoom>();
+        this.rooms = new Map<string, GameRoomController>();
     }
 
     private static generateRoomId() {
@@ -24,9 +24,9 @@ export default class ClientRoomManager {
     }
 
     private generateUniqueRoomId() {
-        let uniqueIdTest = ClientRoomManager.generateRoomId();
+        let uniqueIdTest = ClientToRoomController.generateRoomId();
         while (this.rooms.has(uniqueIdTest)) {
-            uniqueIdTest = ClientRoomManager.generateRoomId();
+            uniqueIdTest = ClientToRoomController.generateRoomId();
         }
         return uniqueIdTest;
     }
@@ -40,23 +40,23 @@ export default class ClientRoomManager {
         return this.clients.get(id);
     }
 
-    public createRoom(creator: ClientGlobalState, chosenNickname: string): GameRoom {
+    public initializeRoom(creator: ClientGlobalState, chosenNickname: string): GameRoomController {
         if (creator.inRoom) {
-            return undefined;
+            return null;
         }
         let roomId = this.generateUniqueRoomId();
-        let room = new GameRoom(roomId);
+        let room = new GameRoomController(roomId);
         let clientRoomState = room.addClient(creator.playerId, chosenNickname);
         creator.setInRoomState(room);
         if (clientRoomState == null) {
             console.error("Error on room creation: could not add creator!");
-            return undefined;
+            return null;
         }
         this.rooms.set(room.getRoomId(), room);
         return room;
     }
 
-    public leaveRoom(client: ClientGlobalState): GameRoom {
+    public leaveRoom(client: ClientGlobalState): GameRoomController {
         if (!client.inRoom) {
             return null;
         }
@@ -71,7 +71,7 @@ export default class ClientRoomManager {
         return null;
     }
 
-    public joinRoom(client: ClientGlobalState, roomId: string, chosenNickname: string): GameRoom {
+    public joinRoom(client: ClientGlobalState, roomId: string, chosenNickname: string): GameRoomController {
         if (!this.rooms.has(roomId) || client.inRoom) {
             return null;
         }

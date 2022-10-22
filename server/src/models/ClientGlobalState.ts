@@ -1,5 +1,5 @@
 import { ClientStatesEnum } from "./ClientStatesEnum";
-import GameRoom from "./GameRoom";
+import GameRoomController from "../controllers/GameRoomController";
 
 export default class ClientGlobalState {
 
@@ -13,7 +13,7 @@ export default class ClientGlobalState {
     inRoom: boolean = false;
     roomId: string = undefined;
 
-    public setInRoomState(room: GameRoom) {
+    public setInRoomState(room: GameRoomController) {
         this.inRoom = true;
         this.roomId = room.getRoomId();
         this.state = ClientStatesEnum.IN_ROOM;
