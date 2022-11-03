@@ -10,6 +10,9 @@ export default class GameRoomController implements IClientObservervable {
     //each game room can have up to 7 clients
     private clients: Array<ClientRoomState>;
     private id: string;
+
+    private 
+
     private gameLogicController: GameLogicController;
 
     private owner: ClientRoomState;
@@ -80,8 +83,14 @@ export default class GameRoomController implements IClientObservervable {
         return true;
     }
 
-    public onClientStateUpdate(client: ClientRoomState) {
+    public onClientRoomStateUpdate(client: ClientRoomState) {
 
+    }
+
+    private notifyClientStateUpdate(oldState: ClientRoomState, newState: ClientRoomState) {
+        this.observers.forEach((o) => {
+            o.onClientStateUpdate(oldState, newState);
+        });
     }
 
     private notifyClientJoin(client: ClientRoomState) {
@@ -113,6 +122,6 @@ export default class GameRoomController implements IClientObservervable {
     }
 
     public getRoomStatePayload(): RoomStatePayload {
-        return { roomId: this.id, clients: this.clients }
+        return { roomId: this.id, clients: this.clients, state: this.state }
     }
 }

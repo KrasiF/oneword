@@ -9,6 +9,10 @@ export default class GameLogicController implements IClientObserver {
     constructor(owner: GameRoomController) {
         this.owner = owner;
     }
+    
+    onClientStateUpdate(oldState: ClientRoomState, newState: ClientRoomState): void {
+        throw new Error("Method not implemented.");
+    }
 
     onClientJoin(joiningClient: ClientRoomState): void {
         throw new Error("Method not implemented.");

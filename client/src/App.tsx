@@ -57,6 +57,10 @@ class App extends React.Component<AppProps, AppState> {
     });
   }
 
+  setClients(clients:ClientRoomState[]){
+    this.setState({clients:clients});
+  }
+
   getNickname() : string | null {
     let inputVal = this.nicknameInputRef.current !== null? this.nicknameInputRef.current.value : null;
     return inputVal;
@@ -64,7 +68,7 @@ class App extends React.Component<AppProps, AppState> {
 
   onRoomUpdated(payload: RoomStatePayload){
     payload.clients.forEach((c)=>console.log(c));
-    this.setState({clients:payload.clients});
+    this.setClients(payload.clients);
   }
 
   onRoomJoined(payload: RoomStatePayload){
@@ -72,7 +76,7 @@ class App extends React.Component<AppProps, AppState> {
       this.roomIdInputRef.current.value = payload.roomId;
     }
 
-    this.setState({clients:payload.clients});
+    this.setClients(payload.clients);
     console.log("payload id: "+ payload.roomId)
   }
 
@@ -110,7 +114,7 @@ class App extends React.Component<AppProps, AppState> {
         <button onClick={()=>{this.joinRoom()}}>Join Room</button>
         <button onClick={()=>{this.leaveRoom()}}>Leave Room</button>
         {
-          this.state.clients.map((c)=><p>{c.nickname}</p>)
+          this.state.clients.map((c)=><p>{c.nickname} isOwner:{c.isOwner.toString()} isReady:{c.isReady.toString()}</p>)
         }
       </div>
     );

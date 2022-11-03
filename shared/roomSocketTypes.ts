@@ -1,3 +1,4 @@
+import { RoomStatesEnum } from "../server/src/models/RoomStatesEnum";
 import ClientRoomState from "./ClientRoomState";
 
 export interface JoinRoomPayload {
@@ -11,5 +12,6 @@ export interface CreateRoomPayload {
 
 export interface RoomStatePayload {
     roomId: string;
+    state: RoomStatesEnum;
     clients: Array<ClientRoomState>;
 }
