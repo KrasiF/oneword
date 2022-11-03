@@ -1,14 +1,16 @@
 import { Server, Socket } from "socket.io";
-import { clientRoomManager } from "../../app";
 import { CreateRoomPayload, JoinRoomPayload, RoomStatePayload } from "../../../shared/roomSocketTypes"
 import GameRoomController from "../controllers/GameRoomController";
 import ClientGlobalState from "../models/ClientGlobalState";
+import ClientToRoomController from "../controllers/ClientToRoomController";
 
 export default class RoomManagerSocketController {
     io: Server;
+    controller: ClientToRoomController;
 
-    constructor(io: Server) {
+    constructor(io: Server, controller: ClientToRoomController) {
         this.io = io;
+        this.controller = controller;
         this.setupConnectionEndpoints();
     }
 
@@ -30,7 +32,7 @@ export default class RoomManagerSocketController {
     setupConnectionEndpoints() {
         this.io.on('connection', (socket) => {
             let playerId: string = socket.handshake.query.playerId as string;
-            let client = clientRoomManager.registerClient(playerId);
+            let client = this.controller.registerClient(playerId);
             console.log('a user connected: ' + JSON.stringify(playerId) + " " + socket.id);
 
             socket.on("ping", () => {
@@ -39,7 +41,7 @@ export default class RoomManagerSocketController {
 
             socket.on("join_room", (data) => {
                 const payload: JoinRoomPayload = JSON.parse(data);
-                let room = clientRoomManager.joinRoom(client, payload.roomId, payload.nickname);
+                let room = this.controller.joinRoom(client, payload.roomId, payload.nickname);
 
                 if (room === null) {
                     console.log("client " + client.playerId + " " + "couldnt join room " + payload.roomId)
@@ -52,7 +54,7 @@ export default class RoomManagerSocketController {
 
             socket.on("create_room", (data) => {
                 const payload: CreateRoomPayload = JSON.parse(data);
-                let room = clientRoomManager.initializeRoom(client, payload.nickname);
+                let room = this.controller.initializeRoom(client, payload.nickname);
 
                 if (room === null) {
                     console.log("new room wasn't created.");
@@ -64,7 +66,7 @@ export default class RoomManagerSocketController {
             })
 
             socket.on("leave_room", () => {
-                let room = clientRoomManager.leaveRoom(client);
+                let room = this.controller.leaveRoom(client);
 
                 if (room === null) {
                     console.log(client.playerId + "couldn't leave room")
