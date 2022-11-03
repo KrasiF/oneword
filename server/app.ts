@@ -4,7 +4,6 @@ import http from 'http';
 const server = http.createServer(app);
 import { Server } from "socket.io";
 import ClientToRoomController from './src/controllers/ClientToRoomController';
-import SocketRouter from './src/socket/SocketRouter';
 
 const io = new Server(server, {
     cors: {
@@ -13,8 +12,7 @@ const io = new Server(server, {
     },
 });
 
-export const clientRoomManager = new ClientToRoomController();
-export const socketRouter = new SocketRouter(io);
+const clientRoomManager = new ClientToRoomController(io);
 
 server.listen(3001, () => {
     console.log('listening on *:3001');

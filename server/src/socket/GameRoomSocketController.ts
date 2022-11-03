@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 
-export default class GameRoomSocketController{
+export default class GameRoomSocketController {
     io: Server;
 
     constructor(io: Server) {
@@ -13,6 +13,6 @@ export default class GameRoomSocketController{
         //receive onStart
 
         //send State update
-        
+
     }
 }

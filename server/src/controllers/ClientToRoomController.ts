@@ -1,14 +1,18 @@
+import { Server } from "socket.io";
 import ClientGlobalState from "../models/ClientGlobalState";
+import RoomManagerSocketController from "../socket/RoomManagerSocketController";
 import GameRoomController from "./GameRoomController";
 
 export default class ClientToRoomController {
 
     private clients: Map<string, ClientGlobalState>;
     private rooms: Map<string, GameRoomController>;
+    private socketController: RoomManagerSocketController;
 
-    constructor() {
+    constructor(io: Server) {
         this.clients = new Map<string, ClientGlobalState>();
         this.rooms = new Map<string, GameRoomController>();
+        this.socketController = new RoomManagerSocketController(io, this);
     }
 
     private static generateRoomId() {
