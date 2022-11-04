@@ -2,13 +2,13 @@ import { Server, Socket } from "socket.io";
 import { CreateRoomPayload, JoinRoomPayload, RoomStatePayload } from "../../../shared/roomSocketTypes"
 import GameRoomController from "../controllers/GameRoomController";
 import ClientGlobalState from "../models/ClientGlobalState";
-import ClientToRoomController from "../controllers/ClientToRoomController";
+import RoomManagerController from "../controllers/RoomManagerController";
 
 export default class RoomManagerSocketController {
     io: Server;
-    controller: ClientToRoomController;
+    controller: RoomManagerController;
 
-    constructor(io: Server, controller: ClientToRoomController) {
+    constructor(io: Server, controller: RoomManagerController) {
         this.io = io;
         this.controller = controller;
         this.setupConnectionEndpoints();
@@ -18,14 +18,18 @@ export default class RoomManagerSocketController {
         let payload: RoomStatePayload = room.getRoomStatePayload();
         socket.join(payload.roomId);
         socket.emit("joined_room", JSON.stringify(payload));
-        socket.to(payload.roomId).emit("state_update_room", JSON.stringify(payload));
+
+        this.sendRoomStateUpdate(socket, room);
     }
 
     handleRoomLeftSocket(socket: Socket, room: GameRoomController) {
-        let payload: RoomStatePayload = room.getRoomStatePayload();
-        console.log(payload.roomId + " left")
-        socket.leave(payload.roomId);
+        socket.leave(room.getRoomId());
         socket.emit("left_room");
+        this.sendRoomStateUpdate(socket, room);
+    }
+
+    sendRoomStateUpdate(socket: Socket, room: GameRoomController) {
+        let payload: RoomStatePayload = room.getRoomStatePayload();
         socket.to(payload.roomId).emit("state_update_room", JSON.stringify(payload));
     }
 
@@ -80,6 +84,15 @@ export default class RoomManagerSocketController {
             socket.on("disconnect", () => {
                 console.log(socket.id + " disconnected.")
             });
+
+            socket.on("set_ready", (data) => {
+                let payload: { roomId: string, isReady: boolean } = JSON.parse(data);
+                this.controller.getRoomGameController(payload.roomId)?.setClientIsReady(client.playerId, payload.isReady);
+            })
+
+            socket.on("start_game", (roomId) => {
+                this.controller.getRoomGameController(roomId)?.tryStartGame(client.playerId);
+            })
 
         });
     }

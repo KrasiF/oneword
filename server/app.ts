@@ -3,7 +3,7 @@ const app = express();
 import http from 'http';
 const server = http.createServer(app);
 import { Server } from "socket.io";
-import ClientToRoomController from './src/controllers/ClientToRoomController';
+import RoomManagerController from './src/controllers/RoomManagerController';
 
 const io = new Server(server, {
     cors: {
@@ -12,7 +12,7 @@ const io = new Server(server, {
     },
 });
 
-const clientRoomManager = new ClientToRoomController(io);
+const clientRoomManager = new RoomManagerController(io);
 
 server.listen(3001, () => {
     console.log('listening on *:3001');

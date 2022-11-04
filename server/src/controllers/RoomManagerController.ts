@@ -3,7 +3,7 @@ import ClientGlobalState from "../models/ClientGlobalState";
 import RoomManagerSocketController from "../socket/RoomManagerSocketController";
 import GameRoomController from "./GameRoomController";
 
-export default class ClientToRoomController {
+export default class RoomManagerController {
 
     private clients: Map<string, ClientGlobalState>;
     private rooms: Map<string, GameRoomController>;
@@ -28,9 +28,9 @@ export default class ClientToRoomController {
     }
 
     private generateUniqueRoomId() {
-        let uniqueIdTest = ClientToRoomController.generateRoomId();
+        let uniqueIdTest = RoomManagerController.generateRoomId();
         while (this.rooms.has(uniqueIdTest)) {
-            uniqueIdTest = ClientToRoomController.generateRoomId();
+            uniqueIdTest = RoomManagerController.generateRoomId();
         }
         return uniqueIdTest;
     }
@@ -87,5 +87,9 @@ export default class ClientToRoomController {
 
     public getClient(id: string): ClientGlobalState {
         return this.clients.get(id);
+    }
+
+    public getRoomGameController(roomId: string): GameRoomController {
+        return this.rooms.get(roomId);
     }
 }

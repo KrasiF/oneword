@@ -5,11 +5,10 @@ import { RoomStatesEnum } from "../models/RoomStatesEnum";
 
 export default class GameRoomController {
     //each game room can have up to 7 clients
-    private clients: Array<ClientRoomState>;
     private id: string;
 
-
     private owner: ClientRoomState;
+    private clients: Array<ClientRoomState>;
 
     private state: RoomStatesEnum;
 
@@ -20,7 +19,7 @@ export default class GameRoomController {
     }
 
     public addClient(playerId: string, nickname: string): ClientRoomState {
-        if (this.clients.length >= 7 || typeof this.getClientRoomState(playerId) !== "undefined") {
+        if (this.clients.length >= 7 || this.getClientRoomState(playerId)) {
             return null;
         }
         const roomClientState: ClientRoomState = new ClientRoomState(playerId, nickname, this.id);
@@ -33,6 +32,7 @@ export default class GameRoomController {
         return roomClientState;
     }
 
+    //it is assumed that client is always in the pool of current clients
     private setOwner(client: ClientRoomState) {
         if (this.owner) {
             this.owner.isOwner = false;
@@ -62,6 +62,14 @@ export default class GameRoomController {
         return true;
     }
 
+    public setClientIsReady(playerId: string, isReady: boolean) {
+        const playerState = this.getClientRoomState(playerId);
+        if (!playerState) {
+            return;
+        }
+        playerState.isReady = isReady;
+    }
+
     public getClientRoomState(playerId: string) {
         return this.clients.find((c) => c.playerId === playerId);
     }
@@ -79,6 +87,8 @@ export default class GameRoomController {
     }
 
     public getRoomStatePayload(): RoomStatePayload {
-        return { roomId: this.id, clients: this.clients, state: this.state }
+        //in order to remove the reference from the returned value to the actual values
+        let stringified = JSON.stringify({ roomId: this.id, clients: this.clients, state: this.state });
+        return JSON.parse(stringified);
     }
 }

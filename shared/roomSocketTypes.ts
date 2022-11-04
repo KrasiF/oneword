@@ -6,6 +6,10 @@ export interface JoinRoomPayload {
     roomId: string
 }
 
+export interface JoinedRoomPayload {
+    roomId: string
+}
+
 export interface CreateRoomPayload {
     nickname: string
 }
